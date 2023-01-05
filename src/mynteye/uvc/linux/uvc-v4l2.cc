@@ -88,9 +88,11 @@ struct throw_error {
 };
 
 static int xioctl(int fh, int request, void *arg) {
+  VLOG(3) << __func__ << ", fh: " << fh << ", request: " << request;
   int r;
   do {
     r = ioctl(fh, request, arg);
+    VLOG(3) << __func__ << ": ioctl got " << r << " and errno " << errno;
   } while (r < 0 && errno == EINTR);
   return r;
 }
@@ -131,7 +133,7 @@ struct device {
   device(std::shared_ptr<context> parent, const std::string &name)
       : parent(parent), dev_name("/dev/" + name) {
     VLOG(2) << __func__ << ": " << dev_name;
-
+    VLOG(2) << __func__ << ": create device with name " << name;
     struct stat st;
     if (stat(dev_name.c_str(), &st) < 0) {  // file status
       throw_error() << "Cannot identify '" << dev_name << "': " << errno << ", "
@@ -143,8 +145,13 @@ struct device {
 
     if (!(std::ifstream("/sys/class/video4linux/" + name + "/name") >>
           this->name))
+    {
       throw_error() << "Failed to read name";
-
+    }
+    else
+    {
+      VLOG(2) << __func__ << ": device name in system: " << dev_name << ", device true name: " << this->name;
+    }
     std::string modalias;
     if (!(std::ifstream(
               "/sys/class/video4linux/" + name + "/device/modalias") >>
@@ -163,6 +170,7 @@ struct device {
       throw_error() << "Failed to read interface number";
 
     fd = open(dev_name.c_str(), O_RDWR | O_NONBLOCK, 0);
+    VLOG(2) << __func__ << ": try to open device with name, got fd: " << fd;
     if (fd < 0) {
       throw_error() << "Cannot open '" << dev_name << "': " << errno << ", "
                     << strerror(errno);
@@ -211,6 +219,7 @@ struct device {
 
   bool pu_control_range(
       uint32_t id, int32_t *min, int32_t *max, int32_t *def) const {
+    VLOG(2) << __func__;
     struct v4l2_queryctrl query;
     query.id = id;
     if (xioctl(fd, VIDIOC_QUERYCTRL, &query) < 0) {
@@ -452,6 +461,7 @@ std::shared_ptr<context> create_context() {
 
 std::vector<std::shared_ptr<device>> query_devices(
     std::shared_ptr<context> context) {
+  VLOG(2) << __func__;
   std::vector<std::shared_ptr<device>> devices;
 
   DIR *dir = opendir("/sys/class/video4linux");
@@ -474,13 +484,14 @@ std::vector<std::shared_ptr<device>> query_devices(
     }
 
     try {
+      VLOG(2) << __func__ << ": try to create device with name: " << name;
       devices.push_back(std::make_shared<device>(context, name));
     } catch (const std::exception &e) {
       VLOG(2) << "Not a USB video device: " << e.what();
     }
   }
   closedir(dir);
-
+  VLOG(2) << __func__ << ", " << devices.size() << " device found.";
   return devices;
 }
 
@@ -494,6 +505,11 @@ int get_vendor_id(const device &device) {
 
 int get_product_id(const device &device) {
   return device.pid;
+}
+
+int get_device_fd(const device& device)
+{
+  return device.fd;
 }
 
 std::string get_video_name(const device &device) {
@@ -516,6 +532,7 @@ static uint32_t get_cid(Option option) {
 bool pu_control_range(
     const device &device, Option option, int32_t *min, int32_t *max,
     int32_t *def) {
+  VLOG(2) << __func__;
   return device.pu_control_range(get_cid(option), min, max, def);
 }
 

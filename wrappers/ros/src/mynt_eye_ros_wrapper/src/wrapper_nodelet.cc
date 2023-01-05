@@ -320,7 +320,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
         NODELET_INFO_STREAM("Set " << it->second << " to " << value);
         api_->SetOptionValue(it->first, value);
       }
-      NODELET_INFO_STREAM(it->first << ": " << api_->GetOptionValue(it->first));
+      NODELET_INFO_STREAM(it->first << ": " << api_->GetOptionValue(it->overridefirst));
     }
 
     // publishers

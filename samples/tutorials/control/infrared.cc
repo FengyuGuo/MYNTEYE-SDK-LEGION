@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 
   if (model == Model::STANDARD || model == Model::STANDARD2) {
     // ir control: range [0,160], default 0
-    api->SetOptionValue(Option::IR_CONTROL, 80);
+    api->SetOptionValue(Option::IR_CONTROL, 0);
 
     LOG(INFO) << "Set IR_CONTROL to "
               << api->GetOptionValue(Option::IR_CONTROL);

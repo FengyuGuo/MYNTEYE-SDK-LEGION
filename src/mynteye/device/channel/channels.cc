@@ -112,6 +112,7 @@ Channels::Channels(const std::shared_ptr<uvc::device> &device,
     imu_sn_(0),
     imu_callback_(nullptr) {
   VLOG(2) << __func__;
+  VLOG(2) << "device fd: " << uvc::get_device_fd(*device_);
   UpdateControlInfos();
 }
 
@@ -137,6 +138,7 @@ void Channels::LogControlInfos() const {
 }
 
 void Channels::UpdateControlInfos() {
+  VLOG(2) << __func__;
   auto &&supports = adapter_->GetOptionSupports();
   for (auto &&option : std::vector<Option>{
       Option::GAIN, Option::BRIGHTNESS, Option::CONTRAST}) {
@@ -587,6 +589,7 @@ bool Channels::SetFiles(
 
 bool Channels::PuControlRange(
     Option option, int32_t *min, int32_t *max, int32_t *def) const {
+  VLOG(2) << __func__;
   CHECK_NOTNULL(device_);
   return uvc::pu_control_range(*device_, option, min, max, def);
 }
@@ -734,6 +737,7 @@ bool Channels::XuFileQuery(
 }
 
 Channels::control_info_t Channels::PuControlInfo(Option option) const {
+  VLOG(2) << __func__;
   int32_t min = 0, max = 0, def = 0;
   if (!PuControlRange(option, &min, &max, &def)) {
     LOG(WARNING) << "Get PuControlInfo of " << option << " failed";

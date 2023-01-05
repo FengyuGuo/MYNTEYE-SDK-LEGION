@@ -100,6 +100,7 @@ Device::~Device() {
 
 std::shared_ptr<Device> Device::Create(
     const std::string &name, std::shared_ptr<uvc::device> device) {
+  VLOG(2) << __func__;
   if (name == "MYNTEYE") {
     return std::make_shared<StandardDevice>(device);
   } else if (strings::starts_with(name, "MYNT-EYE-")) {
@@ -596,6 +597,7 @@ void Device::ReadAllInfos() {
 #endif
         << "Read device infos failed. Please upgrade your firmware to the "
            "latest version.";
+    // return;
   }
   VLOG(2) << "Device info: {name: " << device_info_->name
           << ", serial_number: " << device_info_->serial_number

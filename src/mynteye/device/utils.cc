@@ -32,7 +32,7 @@ bool sort_sn(std::shared_ptr<Device> device1,
 namespace device {
 
 std::shared_ptr<Device> select() {
-  LOG(INFO) << "Detecting MYNT EYE devices";
+  VLOG(2) << __func__;
   Context context;
   auto &&devices = context.devices();
 

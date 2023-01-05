@@ -71,6 +71,7 @@ MYNTEYE_API std::vector<std::shared_ptr<device>> query_devices(
 MYNTEYE_API std::string get_name(const device &device);
 MYNTEYE_API int get_vendor_id(const device &device);
 MYNTEYE_API int get_product_id(const device &device);
+MYNTEYE_API int get_device_fd(const device &device);
 
 MYNTEYE_API std::string get_video_name(const device &device);
 

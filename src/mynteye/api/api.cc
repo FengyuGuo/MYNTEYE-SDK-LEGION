@@ -211,16 +211,17 @@ std::vector<std::string> get_plugin_paths() {
 
 API::API(std::shared_ptr<Device> device, CalibrationModel calib_model)
     : device_(device), correspondence_(nullptr) {
-  VLOG(2) << __func__;
+  VLOG(3) << __func__;
   // std::dynamic_pointer_cast<StandardDevice>(device_);
   synthetic_.reset(new Synthetic(this, calib_model));
 }
 
 API::~API() {
-  VLOG(2) << __func__;
+  VLOG(3) << __func__;
 }
 
 std::shared_ptr<API> API::Create(int argc, char *argv[]) {
+  VLOG(3) << __func__;
   auto &&device = device::select();
   if (!device) return nullptr;
   auto api = Create(argc, argv, device);
@@ -236,6 +237,7 @@ std::shared_ptr<API> API::Create(
 }
 
 std::shared_ptr<API> API::Create(const std::shared_ptr<Device> &device) {
+  VLOG(3) << __func__;
   std::shared_ptr<API> api = nullptr;
   if (device != nullptr) {
     bool in_l_ok, in_r_ok;

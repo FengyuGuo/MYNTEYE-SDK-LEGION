@@ -491,6 +491,7 @@ int get_vendor_id(const device &device) {
   return device.vid;
 }
 
+
 int get_product_id(const device &device) {
   return device.pid;
 }
