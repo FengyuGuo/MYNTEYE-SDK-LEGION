@@ -133,19 +133,20 @@ void RectifyProcessorOCV::InitParams(
   info_pair.R[7] = ex_right_to_left.rotation[2][1];
   info_pair.R[8] = ex_right_to_left.rotation[2][2];
 
-  VLOG(2) << "InitParams size: " << size;
-  VLOG(2) << "M1: " << M1;
-  VLOG(2) << "M2: " << M2;
-  VLOG(2) << "D1: " << D1;
-  VLOG(2) << "D2: " << D2;
-  VLOG(2) << "R: " << R;
-  VLOG(2) << "T: " << T;
+  VLOG(0) << "InitParams size: " << size;
+  VLOG(0) << "M1: " << M1;
+  VLOG(0) << "M2: " << M2;
+  VLOG(0) << "D1: " << D1;
+  VLOG(0) << "D2: " << D2;
+  VLOG(0) << "R: " << R;
+  VLOG(0) << "T: " << T;
 
   cv::Rect left_roi, right_roi;
   cv::stereoRectify(
       M1, D1, M2, D2, size, R, T, R1, R2, P1, P2, Q, cv::CALIB_ZERO_DISPARITY,
       0, size, &left_roi, &right_roi);
-
+  LOG(INFO) << "P1: " << P1 << std::endl;
+  LOG(INFO) << "P2: " << P2 << std::endl;
   for (std::size_t i = 0; i < 3; i++) {
     for (std::size_t j = 0; j < 4; j++) {
       info_pair.left.P[i*4 + j] = P1.at<double>(i, j);

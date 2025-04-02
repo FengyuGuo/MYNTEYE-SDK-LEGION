@@ -17,12 +17,32 @@
 
 #include "mynteye/device/device.h"
 #include "mynteye/uvc/uvc.h"
+#include <iostream>
 
 MYNTEYE_BEGIN_NAMESPACE
 
 Context::Context() : context_(uvc::create_context()) {
   VLOG(2) << __func__;
-
+  int max_mynteye_fd = 0;
+  for (auto &&device : uvc::query_devices(context_)) 
+  {
+    auto name = uvc::get_name(*device);
+    // VLOG(2) << __func__ << ": get device name: " << name;
+    auto vid = uvc::get_vendor_id(*device);
+    auto pid = uvc::get_product_id(*device);
+    // auto video_name = uvc::get_video_name(*device);
+    // VLOG(2) << "UVC device detected, name: " << name << ", vid: 0x" << std::hex
+    //         << vid << ", pid: 0x" << std::hex << pid;
+    // VLOG(2) << "fd: " << uvc::get_device_fd(*device);
+    if (vid == MYNTEYE_VID)
+    {
+      int fd = uvc::get_device_fd(*device);
+      if(fd > max_mynteye_fd)
+      {
+        max_mynteye_fd=fd;
+      }
+    }
+  }
   for (auto &&device : uvc::query_devices(context_)) {
     auto name = uvc::get_name(*device);
     VLOG(2) << __func__ << ": get device name: " << name;
@@ -32,8 +52,10 @@ Context::Context() : context_(uvc::create_context()) {
     VLOG(2) << "UVC device detected, name: " << name << ", vid: 0x" << std::hex
             << vid << ", pid: 0x" << std::hex << pid;
     VLOG(2) << "fd: " << uvc::get_device_fd(*device);
-    if (vid == MYNTEYE_VID && get_device_fd(*device) == 6) {
+    // if (vid == MYNTEYE_VID && uvc::get_device_fd(*device) == max_mynteye_fd) {
+    if (vid == MYNTEYE_VID) {
       VLOG(2) << __func__ << " fd: " << uvc::get_device_fd(*device);
+      std::cout << "try to get device info: " << uvc::get_device_fd(*device) << std::endl;
       auto d = Device::Create(name, device);
       if (d) {
         devices_.push_back(d);

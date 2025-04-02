@@ -33,6 +33,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <iostream>
 
 #include "mynteye/logger.h"
 
@@ -151,6 +152,7 @@ struct device {
     else
     {
       VLOG(2) << __func__ << ": device name in system: " << dev_name << ", device true name: " << this->name;
+      std::cout << __func__ << ": device name in system: " << dev_name << ", device true name: " << this->name << std::endl;
     }
     std::string modalias;
     if (!(std::ifstream(
@@ -171,6 +173,7 @@ struct device {
 
     fd = open(dev_name.c_str(), O_RDWR | O_NONBLOCK, 0);
     VLOG(2) << __func__ << ": try to open device with name, got fd: " << fd;
+    std::cout << __func__ << ": try to open device with name, got fd: " << fd << std::endl;
     if (fd < 0) {
       throw_error() << "Cannot open '" << dev_name << "': " << errno << ", "
                     << strerror(errno);

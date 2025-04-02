@@ -252,7 +252,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
     private_nh_.getParamCached("imu_frame_id", imu_frame_id_);
     private_nh_.getParamCached("temperature_frame_id", temperature_frame_id_);
 
-    gravity_ = 9.8;
+    gravity_ = 9.794;
     private_nh_.getParamCached("gravity", gravity_);
 
     int tmp_disparity_type_ = 0;
@@ -320,7 +320,8 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
         NODELET_INFO_STREAM("Set " << it->second << " to " << value);
         api_->SetOptionValue(it->first, value);
       }
-      NODELET_INFO_STREAM(it->first << ": " << api_->GetOptionValue(it->overridefirst));
+      // NODELET_INFO_STREAM(it->first << ": " << api_->GetOptionValue(it->overridefirst));
+      NODELET_INFO_STREAM(it->first << ": " << api_->GetOptionValue(it->first));
     }
 
     // publishers

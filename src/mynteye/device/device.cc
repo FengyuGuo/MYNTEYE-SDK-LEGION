@@ -597,6 +597,12 @@ void Device::ReadAllInfos() {
 #endif
         << "Read device infos failed. Please upgrade your firmware to the "
            "latest version.";
+    std::cout << "congratulation! you have met the problem to get the device information. but don't worry, we have the solution. pleade check follow steps." << std::endl;
+    std::cout << "1. please check the all the device fd in the console out put. you may find 2 device with MYNT-EYE* name and they have different df." << std::endl;
+    std::cout << "2. find the fd that have make this problem." << std::endl;
+    std::cout << "3. go to src/mynteye/device/context.cc:16. modify the code like if (vid == MYNTEYE_VID && uvc::get_device_fd(*device) == *fd*). fd should be the one that different with problem fd" << std::endl;
+    std::cout << "4. remake the api and reinstall them. remake the program that use this api." << std::endl;
+
     // return;
   }
   VLOG(2) << "Device info: {name: " << device_info_->name
