@@ -688,6 +688,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                       << ", timestamp: " << data.img->timestamp
                       << ", is_ets: " << std::boolalpha << data.img->is_ets
                       << ", exposure_time: " << data.img->exposure_time);
+                      //TODO: publish exposure time!
             }
           });
       left_time_beg_ = ros::Time::now().toSec();
@@ -712,6 +713,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                       << ", timestamp: " << data.img->timestamp
                       << ", is_ets: " << std::boolalpha << data.img->is_ets
                       << ", exposure_time: " << data.img->exposure_time);
+                      //TODO: publish exposure time!
             }
           });
       right_time_beg_ = ros::Time::now().toSec();
