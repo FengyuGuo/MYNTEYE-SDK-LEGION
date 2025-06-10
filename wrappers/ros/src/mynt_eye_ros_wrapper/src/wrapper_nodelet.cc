@@ -39,6 +39,7 @@
 #include "mynteye/api/api.h"
 #include "mynteye/device/context.h"
 #include "mynteye/device/device.h"
+#include "mynteye/device/utils.h"
 #define CONFIGURU_IMPLEMENTATION 1
 #include "configuru.hpp"
 using namespace configuru;  // NOLINT
@@ -229,15 +230,22 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                                              {Stream::RIGHT_RECTIFIED, "right_rect_mono"}};
 
     std::map<Stream, std::string> mono_topics{};
+    std::map<Stream, std::string> exp_topics;
+    std::string exposure_time_topic = "exposure_time_";
+    private_nh_.getParamCached("exposure_time_topic", exposure_time_topic);
     for (auto &&it = mono_names.begin(); it != mono_names.end(); ++it) {
       mono_topics[it->first] = it->second;
       private_nh_.getParamCached(it->second + "_topic", mono_topics[it->first]);
+
+      exp_topics[it->first] = exposure_time_topic + it->second;
     }
 
     std::string imu_topic = "imu";
     std::string temperature_topic = "temperature";
+    
     private_nh_.getParamCached("imu_topic", imu_topic);
     private_nh_.getParamCached("temperature_topic", temperature_topic);
+    
 
     base_frame_id_ = "camera_link";
     private_nh_.getParamCached("base_frame_id", base_frame_id_);
@@ -347,6 +355,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
             it->first == Stream::RIGHT_RECTIFIED ||
             it->first == Stream::LEFT_RECTIFIED) {
           mono_publishers_[it->first] = it_mynteye.advertise(topic, 1);
+          exposure_time_pub_[it->first] = nh_.advertise<sensor_msgs::Temperature>(exp_topics[it->first], 1);
         }
         NODELET_INFO_STREAM("Advertized on topic " << topic);
       }
@@ -713,6 +722,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                       << ", timestamp: " << data.img->timestamp
                       << ", is_ets: " << std::boolalpha << data.img->is_ets
                       << ", exposure_time: " << data.img->exposure_time);
+                      
                       //TODO: publish exposure time!
             }
           });
@@ -845,6 +855,26 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
     auto &&msg = cv_bridge::CvImage(header, enc::MONO8, mono).toImageMsg();
     pthread_mutex_unlock(&mutex_data_);
     mono_publishers_[stream].publish(msg);
+  }
+
+  void publishExpTime(
+    const Stream &stream, const api::StreamData &data, std::uint32_t seq,
+      ros::Time stamp
+  )
+  {
+    if(exposure_time_pub_[stream].getNumSubscribers() == 0)
+    {
+      return;
+    }
+    sensor_msgs::Temperature msg;
+    msg.header.seq = seq;
+    msg.header.stamp = stamp;
+    msg.header.frame_id = frame_ids_[stream];
+    pthread_mutex_lock(&mutex_data_);
+    float real_exp = utils::get_real_exposure_time(frame_rate_, data.img->exposure_time);
+    pthread_mutex_unlock(&mutex_data_);
+    msg.temperature = real_exp;
+    exposure_time_pub_[stream].publish(msg);
   }
 
   void publishPoints(
@@ -1559,6 +1589,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
 
   // mono: LEFT, RIGHT
   std::map<Stream, image_transport::Publisher> mono_publishers_;
+  std::map<Stream, ros::Publisher> exposure_time_pub_;
 
   // pointcloud: POINTS
   ros::Publisher points_publisher_;

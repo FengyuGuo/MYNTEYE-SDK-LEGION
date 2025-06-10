@@ -28,6 +28,7 @@
 
   <arg name="imu_topic" default="imu/data_raw" />
   <arg name="temperature_topic" default="temperature/data_raw" />
+  <arg name="exposure_time_topic" default="exposure_time_" />
 
   <arg name="base_frame_id" default="$(arg mynteye)_link" />
   <arg name="left_frame_id" default="$(arg mynteye)_left_frame" />
