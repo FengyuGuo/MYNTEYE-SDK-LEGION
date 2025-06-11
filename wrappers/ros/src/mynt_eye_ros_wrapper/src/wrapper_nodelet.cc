@@ -342,8 +342,14 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
         points_publisher_ = nh_.advertise<sensor_msgs::PointCloud2>(topic, 1);
       } else {  // camera
         camera_publishers_[it->first] = it_mynteye.advertiseCamera(topic, 1);
+        if(it->first == Stream::LEFT || it->first == Stream::RIGHT)
+        {
+          exposure_time_pub_[it->first] = nh_.advertise<sensor_msgs::Temperature>(exp_topics[it->first], 1);
+          NODELET_INFO_STREAM("Advertized exposure time on topic " << exp_topics[it->first]);
+        }
       }
       NODELET_INFO_STREAM("Advertized on topic " << topic);
+      
     }
 
     // Only STANDARD2/STANDARD210A need publish mono_topics
@@ -355,7 +361,6 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
             it->first == Stream::RIGHT_RECTIFIED ||
             it->first == Stream::LEFT_RECTIFIED) {
           mono_publishers_[it->first] = it_mynteye.advertise(topic, 1);
-          exposure_time_pub_[it->first] = nh_.advertise<sensor_msgs::Temperature>(exp_topics[it->first], 1);
         }
         NODELET_INFO_STREAM("Advertized on topic " << topic);
       }
@@ -680,7 +685,8 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
   void publishTopics() {
     publishMesh();
     if ((camera_publishers_[Stream::LEFT].getNumSubscribers() > 0 ||
-        mono_publishers_[Stream::LEFT].getNumSubscribers() > 0) &&
+        mono_publishers_[Stream::LEFT].getNumSubscribers() > 0 ||
+        exposure_time_pub_[Stream::LEFT].getNumSubscribers() > 0) &&
         !is_published_[Stream::LEFT]) {
       api_->SetStreamCallback(
           Stream::LEFT, [&](const api::StreamData &data) {
@@ -691,13 +697,13 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                   data.img->timestamp, Stream::LEFT);
               publishCamera(Stream::LEFT, data, left_count_, stamp);
               publishMono(Stream::LEFT, data, left_count_, stamp);
+              publishExpTime(Stream::LEFT, data, left_count_, stamp);
               NODELET_DEBUG_STREAM(
                   Stream::LEFT << ", count: " << left_count_
                       << ", frame_id: " << data.img->frame_id
                       << ", timestamp: " << data.img->timestamp
                       << ", is_ets: " << std::boolalpha << data.img->is_ets
                       << ", exposure_time: " << data.img->exposure_time);
-                      //TODO: publish exposure time!
             }
           });
       left_time_beg_ = ros::Time::now().toSec();
@@ -705,7 +711,8 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
     }
 
     if ((camera_publishers_[Stream::RIGHT].getNumSubscribers() > 0 ||
-        mono_publishers_[Stream::RIGHT].getNumSubscribers() > 0) &&
+        mono_publishers_[Stream::RIGHT].getNumSubscribers() > 0 ||
+        exposure_time_pub_[Stream::RIGHT].getNumSubscribers() > 0) &&
         !is_published_[Stream::RIGHT]) {
       api_->SetStreamCallback(
           Stream::RIGHT, [&](const api::StreamData &data) {
@@ -716,14 +723,13 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
                   data.img->timestamp, Stream::RIGHT);
               publishCamera(Stream::RIGHT, data, right_count_, stamp);
               publishMono(Stream::RIGHT, data, right_count_, stamp);
+              publishExpTime(Stream::RIGHT, data, right_count_, stamp);
               NODELET_DEBUG_STREAM(
                   Stream::RIGHT << ", count: " << right_count_
                       << ", frame_id: " << data.img->frame_id
                       << ", timestamp: " << data.img->timestamp
                       << ", is_ets: " << std::boolalpha << data.img->is_ets
                       << ", exposure_time: " << data.img->exposure_time);
-                      
-                      //TODO: publish exposure time!
             }
           });
       right_time_beg_ = ros::Time::now().toSec();
@@ -859,8 +865,7 @@ class ROSWrapperNodelet : public nodelet::Nodelet {
 
   void publishExpTime(
     const Stream &stream, const api::StreamData &data, std::uint32_t seq,
-      ros::Time stamp
-  )
+      ros::Time stamp)
   {
     if(exposure_time_pub_[stream].getNumSubscribers() == 0)
     {
